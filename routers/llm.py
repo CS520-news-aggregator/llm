@@ -10,6 +10,7 @@ from models.llm import (
 )
 from models.utils.constants import DB_HOST
 from llm.ollama.calls import generate_text_from_ollama, ollama_keep_alive
+from tqdm import tqdm
 
 
 llm_router = APIRouter(prefix="/llm")
@@ -43,7 +44,9 @@ async def generate_analysis(
 def compute_analysis(post_analysis_query: PostsAnalysisQuery):
     ollama_keep_alive(-1)
 
-    for post_query in post_analysis_query.post_queries:
+    for post_query in tqdm(
+        post_analysis_query.post_queries, desc="Generating summary and title for text"
+    ):
 
         if post_completion := generate_text_from_ollama(
             prompt=PROMPT_PREFIX, query=post_query.text, response_dt=PostCompletion

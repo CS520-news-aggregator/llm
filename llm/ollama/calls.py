@@ -23,7 +23,7 @@ def generate_text_from_ollama(prompt: str, query: str, response_dt: BaseModel):
     )
 
     llm = Ollama(
-        base_url=f"http://{OLLAMA_HOST}:11434", model=OLLAMA_MODEL, temperature=0
+        base_url=f"http://{OLLAMA_HOST}", model=OLLAMA_MODEL, temperature=0
     )
     chain = prompt | llm | parser
 
@@ -37,7 +37,7 @@ def generate_text_from_ollama(prompt: str, query: str, response_dt: BaseModel):
 
 
 def add_model_to_ollama():
-    ollama_url = f"http://{OLLAMA_HOST}:11434/api/pull"
+    ollama_url = f"http://{OLLAMA_HOST}/api/pull"
 
     try:
         response = requests.post(
@@ -56,7 +56,7 @@ def add_model_to_ollama():
 
 
 def ollama_keep_alive(keep_alive_val: int):
-    ollama_url = f"http://{OLLAMA_HOST}:11434/api/generate"
+    ollama_url = f"http://{OLLAMA_HOST}/api/generate"
     print(f"Sending keep-alive message to OLLAMA with keep_alive={keep_alive_val}")
 
     try:
