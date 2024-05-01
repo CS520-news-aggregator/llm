@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Body, HTTPException, Request, BackgroundTasks
 from fastapi.encoders import jsonable_encoder
+from models.recommendation import RecommendationQuery
 from models.utils.funcs import add_data_to_api
 from models.llm import (
     PostAnalysis,
@@ -8,7 +9,7 @@ from models.llm import (
     PostsAnalysisQuery,
     Response,
 )
-from models.utils.constants import DB_HOST
+from models.utils.constants import DB_HOST, RECOMMENDER_HOST
 from llm.ollama.calls import generate_text_from_ollama, ollama_keep_alive
 from tqdm import tqdm
 
@@ -58,3 +59,9 @@ def compute_analysis(post_analysis_query: PostsAnalysisQuery):
             add_data_to_api(DB_HOST, "llm/add-analysis", post_analysis)
 
     ollama_keep_alive(-1)
+
+    list_post_ids = [post_analysis.post_id for post_analysis in post_analysis_query.post_queries]
+    recommender_query = RecommendationQuery(post_ids=list_post_ids)
+    add_data_to_api(
+        RECOMMENDER_HOST, "recommender/add-recommendations", recommender_query
+    )
