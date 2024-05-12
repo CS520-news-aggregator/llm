@@ -1,3 +1,3 @@
 #!/bin/bash
 
-pytest --cov=routers tests/
+pytest --cov-report term-missing --cov=routers tests/

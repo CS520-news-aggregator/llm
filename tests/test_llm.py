@@ -1,33 +1,42 @@
 from fastapi.testclient import TestClient
 from fastapi.encoders import jsonable_encoder
-from models.pub_sub import Subscriber
+from models.llm import Prompt, PostCompletion, PostsAnalysisQuery, PostQuery
 from main import app
 
 client = TestClient(app)
 
 
-# TODO changes tests
-def test_post_sub():
-    assert True
+def test_prompt_empty():
+    response = client.post(
+        "/llm/prompt",
+        json=jsonable_encoder(Prompt(prompt="", query="")),
+    )
+    assert response.status_code == 400
 
 
-#     sub = Subscriber(ip_address="123456789", port=1000)
-#     response = client.post("/observer/subscribe", json=jsonable_encoder(sub))
-#     assert response.status_code == 200
-#     assert response.json() == {"message": "Observer subscribed"}
-
-#     sub2 = Subscriber(ip_address="123456789", port=1000)
-#     response = client.post("/observer/subscribe", json=jsonable_encoder(sub2))
-#     assert response.status_code == 400
-
-
-# def test_get_sub():
-#     response = client.get("/observer/subscribers")
-#     assert response.status_code == 200
-#     assert "subscribers" in response.json() and type(response.json()["subscribers"]) is list
+def test_prompt_result(mocker):
+    mocker.patch("routers.llm.generate_text_from_ollama", return_value="test")
+    response = client.post(
+        "/llm/prompt",
+        json=jsonable_encoder(Prompt(prompt="test", query="test")),
+    )
+    assert response.status_code == 200
 
 
-# def test_update_sub_fail(capsys):
-#     update_subscribers(["random"])
-#     captured = capsys.readouterr()
-#     assert "Could not send update to" in captured.out
+def test_generate_analysis(mocker):
+    mocker.patch("routers.llm.ollama_keep_alive", return_value=None)
+
+    mocker.patch(
+        "routers.llm.generate_text_from_ollama",
+        return_value=PostCompletion(title="test", summary="test"),
+    )
+
+    mocker.patch("routers.llm.add_data_to_api", return_value=None)
+
+    response = client.post(
+        "/llm/add-analysis",
+        json=jsonable_encoder(
+            PostsAnalysisQuery(post_queries=[PostQuery(post_id="1", text="test")])
+        ),
+    )
+    assert response.status_code == 200
